@@ -6,7 +6,6 @@
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-
 import logging
 
 import salt.modules.mysql as mysql
@@ -493,6 +492,25 @@ class MySQLTestCase(TestCase, LoaderModuleMockMixin):
             "CREATE DATABASE IF NOT EXISTS `test``'\" db`;",
             "test`'\" db",
         )
+
+    def test_alter_db(self):
+        """
+        Test MySQL alter_db function in mysql exec module
+        """
+        mock_get_db = {
+            "character_set": "utf8",
+            "collate": "utf8_unicode_ci",
+            "name": "my_test",
+        }
+        mock = MagicMock(return_value=mock_get_db)
+        with patch.object(mysql, "db_get", return_value=mock) as mock_db_get:
+            self._test_call(
+                mysql.alter_db,
+                "ALTER DATABASE `my_test` CHARACTER SET utf8 COLLATE utf8_unicode_ci;",
+                "my_test",
+                "utf8",
+                "utf8_unicode_ci",
+            )
 
     def test_user_list(self):
         """
