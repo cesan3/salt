@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     :codeauthor: Mike Place (mp@saltstack.com)
 
@@ -8,8 +7,6 @@
 """
 
 # Import Python libs
-from __future__ import absolute_import, print_function, unicode_literals
-
 import logging
 
 # Import salt libs
@@ -81,7 +78,7 @@ __all_privileges__ = [
 ]
 
 
-class MockMySQLConnect(object):
+class MockMySQLConnect:
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
@@ -426,6 +423,25 @@ class MySQLTestCase(TestCase, LoaderModuleMockMixin):
             "test`'\" db",
         )
 
+    def test_alter_db(self):
+        """
+        Test MySQL alter_db function in mysql exec module
+        """
+        mock_get_db = {
+            "character_set": "utf8",
+            "collate": "utf8_unicode_ci",
+            "name": "my_test",
+        }
+        mock = MagicMock(return_value=mock_get_db)
+        with patch.object(mysql, "db_get", return_value=mock) as mock_db_get:
+            self._test_call(
+                mysql.alter_db,
+                "ALTER DATABASE `my_test` CHARACTER SET utf8 COLLATE utf8_unicode_ci;",
+                "my_test",
+                "utf8",
+                "utf8_unicode_ci",
+            )
+
     def test_user_list(self):
         """
         Test MySQL user_list function in mysql exec module
@@ -679,11 +695,11 @@ insert into test_update values ("crazy -- not comment");
                         call()
                         .cursor()
                         .execute(
-                            "{0}".format(expected_sql["sql"]), expected_sql["sql_args"]
+                            "{}".format(expected_sql["sql"]), expected_sql["sql_args"]
                         )
                     )
                 else:
-                    calls = call().cursor().execute("{0}".format(expected_sql))
+                    calls = call().cursor().execute("{}".format(expected_sql))
                 connect_mock.assert_has_calls((calls,), True)
 
     @skipIf(
