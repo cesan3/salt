@@ -1,16 +1,12 @@
-# -*- coding: utf-8 -*-
 """
 Module to interact with keystores
 """
 
-# Import Python libs
-from __future__ import absolute_import, print_function, unicode_literals
 
 import logging
 import os
 from datetime import datetime
 
-# Import third party libs
 from salt.exceptions import CommandExecutionError, SaltInvocationError
 
 log = logging.getLogger(__name__)
@@ -32,7 +28,7 @@ def __virtual__():
     Check dependencies
     """
     if has_depends is False:
-        msg = "jks unavailable: {0} execution module cant be loaded ".format(
+        msg = "jks unavailable: {} execution module cant be loaded ".format(
             __virtualname__
         )
         return False, msg
@@ -43,14 +39,14 @@ def _parse_cert(alias, public_cert, return_cert=False):
     ASN1 = OpenSSL.crypto.FILETYPE_ASN1
     PEM = OpenSSL.crypto.FILETYPE_PEM
     cert_data = {}
-    sha1 = public_cert.digest(b"sha1")
+    sha1 = public_cert.digest("sha1")
 
     cert_pem = OpenSSL.crypto.dump_certificate(PEM, public_cert)
-    raw_until = public_cert.get_notAfter()
+    raw_until = public_cert.get_notAfter().decode("ascii")
     date_until = datetime.strptime(raw_until, "%Y%m%d%H%M%SZ")
     string_until = date_until.strftime("%B %d %Y")
 
-    raw_start = public_cert.get_notBefore()
+    raw_start = public_cert.get_notBefore().decode("ascii")
     date_start = datetime.strptime(raw_start, "%Y%m%d%H%M%SZ")
     string_start = date_start.strftime("%B %d %Y")
 
@@ -117,7 +113,7 @@ def list(keystore, passphrase, alias=None, return_cert=False):
                 )
 
             # Detect if ASN1 binary, otherwise assume PEM
-            if "\x30" in cert_result[0]:
+            if b"\x30" in cert_result:
                 public_cert = OpenSSL.crypto.load_certificate(ASN1, cert_result)
             else:
                 public_cert = OpenSSL.crypto.load_certificate(PEM, cert_result)
@@ -159,7 +155,7 @@ def add(name, keystore, passphrase, certificate, private_key=None):
         cert_string = __salt__["x509.get_pem_entry"](certificate)
     except SaltInvocationError:
         raise SaltInvocationError(
-            "Invalid certificate file or string: {0}".format(certificate)
+            "Invalid certificate file or string: {}".format(certificate)
         )
 
     if private_key:
